@@ -2,11 +2,11 @@
   "name": "lemon-tree",
   "displayName": "lemon-tree",
   "description": "A ui in vscode for lemon-tree",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "icon": "./media/logo.png",
   "publisher": "garrux",
   "engines": {
-    "vscode": "^1.102.0"
+    "vscode": "^1.90.0"
   },
   "categories": [
     "Other"
@@ -46,7 +46,7 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
     "@types/sinon": "^17.0.4",
-    "@types/vscode": "^1.102.0",
+    "@types/vscode": "^1.90.0",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
     "@vscode/test-cli": "^0.0.11",
