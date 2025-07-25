@@ -1,0 +1,248 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Lemon Tree Config",
+    "type": "object",
+    "required": [
+        "languages"
+    ],
+    "description": "Schema for Lemon Tree configuration (lemon-tree.yaml). Defines supported languages, translation paths, type definitions, and automation settings.",
+    "properties": {
+        "languages": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "pattern": "^[a-z]{2}(-[a-zA-Z0-9]{2,8})?$",
+                "examples": [
+                    "en",
+                    "es",
+                    "es-ES",
+                    "es-MX",
+                    "es-US",
+                    "es-AR",
+                    "es-CO",
+                    "es-CL",
+                    "es-PE",
+                    "ja",
+                    "zh",
+                    "pt",
+                    "fr",
+                    "de",
+                    "it",
+                    "ko",
+                    "ru",
+                    "ar",
+                    "hi",
+                    "bn",
+                    "te",
+                    "ta",
+                    "mr",
+                    "pl"
+                ]
+            },
+            "description": "List of supported languages, e.g. 'en', 'es-ES'"
+        },
+        "sourceLanguage": {
+            "type": "string",
+            "description": "Base language from which texts are translated"
+        },
+        "cliLanguage": {
+            "type": "string",
+            "description": "CLI language (es or en)",
+            "enum": [
+                "es",
+                "en"
+            ]
+        },
+        "default": {
+            "type": "object",
+            "properties": {
+                "filePattern": {
+                    "type": "string",
+                    "description": "Path to the translations file. Supports interpolations: {{lang}}, {{provider}}, and {{sourceLanguage}}"
+                },
+                "protectionPattern": {
+                    "type": "string",
+                    "pattern": "^.+key.+$",
+                    "description": "Protection pattern, must include the word 'key'"
+                },
+                "typeDefinition": {
+                    "type": "object",
+                    "properties": {
+                        "file": {
+                            "type": "string",
+                            "description": "Path to the type definition file. Supported interpolations: {{lang}}, {{provider}}, and {{sourceLanguage}}"
+                        },
+                        "exportName": {
+                            "type": "string",
+                            "description": "Name of the type definition export"
+                        }
+                    },
+                    "required": [
+                        "file",
+                        "exportName"
+                    ]
+                }
+            },
+            "required": [
+                "filePattern"
+            ]
+        },
+        "translations": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "lang",
+                    "filePattern"
+                ],
+                "properties": {
+                    "lang": {
+                        "type": "string",
+                        "pattern": "^[a-z]{2}(-[a-zA-Z0-9]{2,8})?$",
+                        "description": "Language code (e.g. 'es', 'pt-BR', 'zh-Hans')",
+                        "examples": [
+                            "en",
+                            "es",
+                            "es-ES",
+                            "es-MX",
+                            "es-US",
+                            "es-AR",
+                            "es-CO",
+                            "es-CL",
+                            "es-PE",
+                            "ja",
+                            "zh",
+                            "pt",
+                            "fr",
+                            "de",
+                            "it",
+                            "ko",
+                            "ru",
+                            "ar",
+                            "hi",
+                            "bn",
+                            "te",
+                            "ta",
+                            "mr",
+                            "pl"
+                        ]
+                    },
+                    "filePattern": {
+                        "type": "string",
+                        "description": "Path to the translations file. Supports interpolations: {{lang}}, {{provider}}, and {{sourceLanguage}}"
+                    },
+                    "protectionPattern": {
+                        "type": "string",
+                        "pattern": "^.+key.+$",
+                        "description": "Protection pattern, must include the word 'key'"
+                    },
+                    "typeDefinition": {
+                        "type": "object",
+                        "properties": {
+                            "file": {
+                                "type": "string",
+                                "description": "Path to the type definition file. Supported interpolations: {{lang}}, {{provider}}, and {{sourceLanguage}}"
+                            },
+                            "exportName": {
+                                "type": "string",
+                                "description": "Name of the type definition export"
+                            }
+                        },
+                        "required": [
+                            "file",
+                            "exportName"
+                        ]
+                    }
+                }
+            }
+        },
+        "api": {
+            "type": "object",
+            "required": [
+                "provider"
+            ],
+            "properties": {
+                "provider": {
+                    "type": "string",
+                    "enum": [
+                        "google",
+                        "deepl-free",
+                        "deepl-pro",
+                        "microsoft",
+                        "yandex",
+                        "plugin"
+                    ]
+                },
+                "key": {
+                    "type": "string",
+                    "description": "API key (can be interpolated)"
+                },
+                "plugin": {
+                    "type": "string",
+                    "description": "Plugin path (required if provider is 'plugin')"
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "provider": {
+                                "const": "plugin"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "plugin"
+                        ]
+                    },
+                    "else": {
+                        "not": {
+                            "required": [
+                                "plugin"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        "preScript": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "Commands to execute before the process"
+        },
+        "postScript": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "Commands to execute after set/delete. You can use {{action}} and {{result}}"
+        },
+        "translationFunctionExamples": {
+            "type": "array",
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": ".*\\$text.*",
+                        "description": "Examples of function calls or JSX that include a translation key. Use $text to indicate where the key appears."
+                    }
+                },
+                {
+                    "type": "string",
+                    "pattern": ".*\\$text.*",
+                    "description": "Examples of function calls or JSX that include a translation key. Use $text to indicate where the key appears."
+                }
+            ],
+            "description": "Simple examples to detect translation calls. Use '$text' to mark the position of the translation key.",
+            "examples": [
+                "t($text)",
+                "i18n.t($text)",
+                "<Trans i18nKey='$text' />"
+            ]
+        }
+    }
+}
