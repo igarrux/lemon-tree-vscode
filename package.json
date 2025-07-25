@@ -1,0 +1,72 @@
+{
+  "name": "lemon-tree",
+  "displayName": "lemon-tree",
+  "description": "A ui in vscode for lemon-tree",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.102.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "workspaceContains:lemon-tree.yaml"
+  ],
+  "files": [
+    "schemas/",
+    "dist/",
+    "media/"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "yamlValidation": [
+      {
+        "fileMatch": [
+          "lemon-tree.yaml"
+        ],
+        "url": "./schemas/lemon-tree.schema.json"
+      }
+    ]
+  },
+  "extensionDependencies": [
+    "redhat.vscode-yaml"
+  ],
+  "scripts": {
+    "vscode:prepublish": "yarn run package",
+    "compile": "yarn run check-types && yarn run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "yarn run check-types && yarn run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@types/sinon": "^17.0.4",
+    "@types/vscode": "^1.102.0",
+    "@typescript-eslint/eslint-plugin": "^8.31.1",
+    "@typescript-eslint/parser": "^8.31.1",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.25.3",
+    "eslint": "^9.25.1",
+    "npm-run-all": "^4.1.5",
+    "sinon": "^21.0.0",
+    "typescript": "^5.8.3"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/igarrux/lemon-tree-vscode.git"
+  },
+  "dependencies": {
+    "ts-morph": "^26.0.0",
+    "yaml": "^2.8.0"
+  }
+}
