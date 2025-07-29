@@ -1,23 +1,21 @@
 import * as assert from 'assert';
-import * as sinon from 'sinon';
+import { beforeEach, afterEach, describe, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { Toast } from './toast';
 
 describe('Toast', () => {
-  let sandbox: sinon.SinonSandbox;
-  let showErrorMessageStub: sinon.SinonStub;
-  let showInformationMessageStub: sinon.SinonStub;
-  let showWarningMessageStub: sinon.SinonStub;
+  let showErrorMessageStub: any;
+  let showInformationMessageStub: any;
+  let showWarningMessageStub: any;
 
   beforeEach(() => {
-    sandbox = sinon.createSandbox();
-    showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
-    showInformationMessageStub = sandbox.stub(vscode.window, 'showInformationMessage');
-    showWarningMessageStub = sandbox.stub(vscode.window, 'showWarningMessage');
+    showErrorMessageStub = vi.mocked(vscode.window.showErrorMessage);
+    showInformationMessageStub = vi.mocked(vscode.window.showInformationMessage);
+    showWarningMessageStub = vi.mocked(vscode.window.showWarningMessage);
   });
 
   afterEach(() => {
-    sandbox.restore();
+    vi.clearAllMocks();
   });
 
   describe('error', () => {
@@ -26,8 +24,8 @@ describe('Toast', () => {
       
       Toast.error(message);
       
-      assert.ok(showErrorMessageStub.calledOnce);
-      assert.ok(showErrorMessageStub.calledWith(message));
+      assert.strictEqual(showErrorMessageStub.mock.calls.length, 1);
+      assert.strictEqual(showErrorMessageStub.mock.calls[0][0], message);
     });
 
     it('should handle empty message', () => {
@@ -35,8 +33,8 @@ describe('Toast', () => {
       
       Toast.error(message);
       
-      assert.ok(showErrorMessageStub.calledOnce);
-      assert.ok(showErrorMessageStub.calledWith(message));
+      assert.strictEqual(showErrorMessageStub.mock.calls.length, 1);
+      assert.strictEqual(showErrorMessageStub.mock.calls[0][0], message);
     });
 
     it('should handle special characters in message', () => {
@@ -44,8 +42,8 @@ describe('Toast', () => {
       
       Toast.error(message);
       
-      assert.ok(showErrorMessageStub.calledOnce);
-      assert.ok(showErrorMessageStub.calledWith(message));
+      assert.strictEqual(showErrorMessageStub.mock.calls.length, 1);
+      assert.strictEqual(showErrorMessageStub.mock.calls[0][0], message);
     });
   });
 
@@ -55,8 +53,8 @@ describe('Toast', () => {
       
       Toast.info(message);
       
-      assert.ok(showInformationMessageStub.calledOnce);
-      assert.ok(showInformationMessageStub.calledWith(message));
+      assert.strictEqual(showInformationMessageStub.mock.calls.length, 1);
+      assert.strictEqual(showInformationMessageStub.mock.calls[0][0], message);
     });
 
     it('should handle empty message', () => {
@@ -64,8 +62,8 @@ describe('Toast', () => {
       
       Toast.info(message);
       
-      assert.ok(showInformationMessageStub.calledOnce);
-      assert.ok(showInformationMessageStub.calledWith(message));
+      assert.strictEqual(showInformationMessageStub.mock.calls.length, 1);
+      assert.strictEqual(showInformationMessageStub.mock.calls[0][0], message);
     });
 
     it('should handle multi-line message', () => {
@@ -73,8 +71,8 @@ describe('Toast', () => {
       
       Toast.info(message);
       
-      assert.ok(showInformationMessageStub.calledOnce);
-      assert.ok(showInformationMessageStub.calledWith(message));
+      assert.strictEqual(showInformationMessageStub.mock.calls.length, 1);
+      assert.strictEqual(showInformationMessageStub.mock.calls[0][0], message);
     });
   });
 
@@ -84,8 +82,8 @@ describe('Toast', () => {
       
       Toast.warning(message);
       
-      assert.ok(showWarningMessageStub.calledOnce);
-      assert.ok(showWarningMessageStub.calledWith(message));
+      assert.strictEqual(showWarningMessageStub.mock.calls.length, 1);
+      assert.strictEqual(showWarningMessageStub.mock.calls[0][0], message);
     });
 
     it('should handle empty message', () => {
@@ -93,8 +91,8 @@ describe('Toast', () => {
       
       Toast.warning(message);
       
-      assert.ok(showWarningMessageStub.calledOnce);
-      assert.ok(showWarningMessageStub.calledWith(message));
+      assert.strictEqual(showWarningMessageStub.mock.calls.length, 1);
+      assert.strictEqual(showWarningMessageStub.mock.calls[0][0], message);
     });
 
     it('should handle numeric message converted to string', () => {
@@ -102,8 +100,8 @@ describe('Toast', () => {
       
       Toast.warning(message);
       
-      assert.ok(showWarningMessageStub.calledOnce);
-      assert.ok(showWarningMessageStub.calledWith(message));
+      assert.strictEqual(showWarningMessageStub.mock.calls.length, 1);
+      assert.strictEqual(showWarningMessageStub.mock.calls[0][0], message);
     });
   });
 });

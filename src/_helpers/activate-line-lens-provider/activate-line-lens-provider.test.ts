@@ -1,30 +1,29 @@
 import * as assert from 'assert';
-import * as sinon from 'sinon';
+import { beforeEach, afterEach, describe, it, vi, expect } from 'vitest';
 import * as vscode from 'vscode';
 import { LemonCodeLensProvider } from './activate-line-lens-provider';
 import { getLineActions } from '../../_util/get-line-actions/get-line-actions';
 
+// Mock the getLineActions module
+vi.mock('../../_util/get-line-actions/get-line-actions');
+
 describe('LemonCodeLensProvider', () => {
-  let sandbox: sinon.SinonSandbox;
   let provider: LemonCodeLensProvider;
   let document: vscode.TextDocument;
-  let getLineActionsStub: sinon.SinonStub;
+  let getLineActionsStub: any;
 
   beforeEach(() => {
-    sandbox = sinon.createSandbox();
     provider = new LemonCodeLensProvider();
     
     document = {
       uri: vscode.Uri.file('/test/file.ts')
     } as vscode.TextDocument;
     
-    getLineActionsStub = sandbox.stub();
-    sandbox.stub(require('../../_util/get-line-actions/get-line-actions'), 'getLineActions')
-      .callsFake(getLineActionsStub);
+    getLineActionsStub = vi.mocked(getLineActions);
   });
 
   afterEach(() => {
-    sandbox.restore();
+    vi.clearAllMocks();
   });
 
   describe('setMatches', () => {
@@ -43,12 +42,14 @@ describe('LemonCodeLensProvider', () => {
       assert.doesNotThrow(() => provider.setMatches(5, matches));
     });
 
-    it('should fire onDidChangeCodeLenses event', (done) => {
-      provider.onDidChangeCodeLenses(() => {
-        done();
+    it('should fire onDidChangeCodeLenses event', () => {
+      return new Promise<void>((resolve) => {
+        provider.onDidChangeCodeLenses(() => {
+          resolve();
+        });
+        
+        provider.setMatches(0, []);
       });
-      
-      provider.setMatches(0, []);
     });
 
     it('should handle empty matches array', () => {
@@ -88,7 +89,7 @@ describe('LemonCodeLensProvider', () => {
           fnRange: new vscode.Range(5, 5, 5, 8)
         }
       ];
-      getLineActionsStub.returns(['update', 'remove']);
+      getLineActionsStub.mockReturnValue(['update', 'remove']);
       
       provider.setMatches(5, matches);
       const result = await provider.provideCodeLenses(document);
@@ -116,7 +117,7 @@ describe('LemonCodeLensProvider', () => {
           fnRange: new vscode.Range(3, 0, 3, 3)
         }
       ];
-      getLineActionsStub.returns(['add', 'remove']);
+      getLineActionsStub.mockReturnValue(['add', 'remove']);
       
       provider.setMatches(3, matches);
       const result = await provider.provideCodeLenses(document);
@@ -141,7 +142,7 @@ describe('LemonCodeLensProvider', () => {
           fnRange: new vscode.Range(1, 0, 1, 1)
         }
       ];
-      getLineActionsStub.returns(['update']);
+      getLineActionsStub.mockReturnValue(['update']);
       
       provider.setMatches(1, matches);
       const result = await provider.provideCodeLenses(document);
@@ -158,7 +159,7 @@ describe('LemonCodeLensProvider', () => {
           fnRange: new vscode.Range(2, 0, 2, 1)
         }
       ];
-      getLineActionsStub.returns(['add']);
+      getLineActionsStub.mockReturnValue(['add']);
       
       provider.setMatches(2, matches);
       const result = await provider.provideCodeLenses(document);
@@ -175,7 +176,7 @@ describe('LemonCodeLensProvider', () => {
           fnRange: new vscode.Range(4, 0, 4, 1)
         }
       ];
-      getLineActionsStub.returns(['remove']);
+      getLineActionsStub.mockReturnValue(['remove']);
       
       provider.setMatches(4, matches);
       const result = await provider.provideCodeLenses(document);
@@ -199,8 +200,8 @@ describe('LemonCodeLensProvider', () => {
       ];
       
       getLineActionsStub
-        .onFirstCall().returns(['update', 'remove'])
-        .onSecondCall().returns(['add', 'remove']);
+        .mockReturnValueOnce(['update', 'remove'])
+        .mockReturnValueOnce(['add', 'remove']);
       
       provider.setMatches(1, matches);
       const result = await provider.provideCodeLenses(document);
@@ -231,7 +232,7 @@ describe('LemonCodeLensProvider', () => {
           fnRange: new vscode.Range(1, 0, 1, 1)
         }
       ];
-      getLineActionsStub.returns([]);
+      getLineActionsStub.mockReturnValue([]);
       
       provider.setMatches(1, matches);
       const result = await provider.provideCodeLenses(document);
@@ -248,7 +249,7 @@ describe('LemonCodeLensProvider', () => {
           fnRange: new vscode.Range(5, 5, 5, 8)
         }
       ];
-      getLineActionsStub.returns(['update']);
+      getLineActionsStub.mockReturnValue(['update']);
       
       provider.setMatches(5, matches);
       const result = await provider.provideCodeLenses(document);
@@ -267,13 +268,13 @@ describe('LemonCodeLensProvider', () => {
           fnRange
         }
       ];
-      getLineActionsStub.returns(['update']);
+      getLineActionsStub.mockReturnValue(['update']);
       
       provider.setMatches(3, matches);
       await provider.provideCodeLenses(document);
       
-      assert.ok(getLineActionsStub.calledOnce);
-      assert.ok(getLineActionsStub.calledWith(document, range, fnRange));
+      expect(getLineActionsStub).toHaveBeenCalledOnce();
+      expect(getLineActionsStub).toHaveBeenCalledWith(document, range, fnRange);
     });
   });
 
@@ -286,39 +287,43 @@ describe('LemonCodeLensProvider', () => {
       assert.strictEqual(typeof disposable.dispose, 'function');
     });
 
-    it('should fire when setMatches is called', (done) => {
-      let eventFired = false;
-      
-      provider.onDidChangeCodeLenses(() => {
-        eventFired = true;
-        assert.ok(true);
-        done();
+    it('should fire when setMatches is called', () => {
+      return new Promise<void>((resolve) => {
+        let eventFired = false;
+        
+        provider.onDidChangeCodeLenses(() => {
+          eventFired = true;
+          assert.ok(true);
+          resolve();
+        });
+        
+        provider.setMatches(0, []);
       });
-      
-      provider.setMatches(0, []);
     });
 
-    it('should allow multiple listeners', (done) => {
-      let listener1Called = false;
-      let listener2Called = false;
-      
-      provider.onDidChangeCodeLenses(() => {
-        listener1Called = true;
-        checkCompletion();
-      });
-      
-      provider.onDidChangeCodeLenses(() => {
-        listener2Called = true;
-        checkCompletion();
-      });
-      
-      function checkCompletion() {
-        if (listener1Called && listener2Called) {
-          done();
+    it('should allow multiple listeners', () => {
+      return new Promise<void>((resolve) => {
+        let listener1Called = false;
+        let listener2Called = false;
+        
+        provider.onDidChangeCodeLenses(() => {
+          listener1Called = true;
+          checkCompletion();
+        });
+        
+        provider.onDidChangeCodeLenses(() => {
+          listener2Called = true;
+          checkCompletion();
+        });
+        
+        function checkCompletion() {
+          if (listener1Called && listener2Called) {
+            resolve();
+          }
         }
-      }
-      
-      provider.setMatches(0, []);
+        
+        provider.setMatches(0, []);
+      });
     });
   });
 });

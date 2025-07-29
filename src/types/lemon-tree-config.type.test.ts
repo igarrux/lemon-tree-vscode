@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import { describe, it, expect } from 'vitest';
 import { LemonTreeConfig } from './lemon-tree-config.type';
 import { LemonTreeTranslationConfig } from './lemon-tree-translation-config.type';
 
@@ -17,11 +17,11 @@ describe('LemonTreeConfig type', () => {
       }
     };
 
-    assert.ok(validConfig);
-    assert.deepStrictEqual(validConfig.languages, ['en', 'es', 'fr']);
-    assert.strictEqual(validConfig.sourceLanguage, 'en');
-    assert.strictEqual(validConfig.default.filePattern, './translations/{{lang}}.json');
-    assert.strictEqual(validConfig.api.provider, 'google');
+    expect(validConfig).toBeDefined();
+    expect(validConfig.languages).toEqual(['en', 'es', 'fr']);
+    expect(validConfig.sourceLanguage).toBe('en');
+    expect(validConfig.default.filePattern).toBe('./translations/{{lang}}.json');
+    expect(validConfig.api.provider).toBe('google');
   });
 
   it('should allow optional properties', () => {
@@ -53,12 +53,12 @@ describe('LemonTreeConfig type', () => {
       translationFunctionExamples: ['t($text)', 'i18n.t($text)']
     };
 
-    assert.ok(configWithOptionals);
-    assert.strictEqual(configWithOptionals.cliLanguage, 'es');
-    assert.ok(configWithOptionals.translations);
-    assert.ok(Array.isArray(configWithOptionals.preScript));
-    assert.ok(Array.isArray(configWithOptionals.postScript));
-    assert.ok(Array.isArray(configWithOptionals.translationFunctionExamples));
+    expect(configWithOptionals).toBeDefined();
+    expect(configWithOptionals.cliLanguage).toBe('es');
+    expect(configWithOptionals.translations).toBeDefined();
+    expect(Array.isArray(configWithOptionals.preScript)).toBe(true);
+    expect(Array.isArray(configWithOptionals.postScript)).toBe(true);
+    expect(Array.isArray(configWithOptionals.translationFunctionExamples)).toBe(true);
   });
 
   it('should allow string for translationFunctionExamples', () => {
@@ -76,8 +76,8 @@ describe('LemonTreeConfig type', () => {
       translationFunctionExamples: 't($text)'
     };
 
-    assert.ok(configWithStringExample);
-    assert.strictEqual(configWithStringExample.translationFunctionExamples, 't($text)');
+    expect(configWithStringExample).toBeDefined();
+    expect(configWithStringExample.translationFunctionExamples).toBe('t($text)');
   });
 
   it('should work with different API providers', () => {
@@ -97,7 +97,7 @@ describe('LemonTreeConfig type', () => {
         }
       };
 
-      assert.strictEqual(config.api.provider, provider);
+      expect(config.api.provider).toBe(provider);
     });
   });
 
@@ -116,6 +116,6 @@ describe('LemonTreeConfig type', () => {
       }
     };
 
-    assert.strictEqual(configWithPlugin.api.plugin, './my-plugin.js');
+    expect(configWithPlugin.api.plugin).toBe('./my-plugin.js');
   });
 });

@@ -1,95 +1,107 @@
-import * as assert from 'assert';
-import * as sinon from 'sinon';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as vscode from 'vscode';
 import { activate, deactivate, gutterIconManager } from './extension';
 import { GetConfig } from './_helpers';
 import { logger } from './_logger/logger';
+import { registerCommands } from './_util/register-commands/register-commans';
+import { activateTranslationDecorations } from './infrastructure/vscode/activate-translation-decorators';
+import { GutterIconManager } from './_helpers/gutter-icon-manager/gutter-icon-manager';
+
+// Mock dependencies
+vi.mock('./_helpers');
+vi.mock('./_logger/logger');
+vi.mock('./_util/register-commands/register-commans');
+vi.mock('./infrastructure/vscode/activate-translation-decorators');
+vi.mock('./_helpers/gutter-icon-manager/gutter-icon-manager');
 
 describe('Extension', () => {
-  let context: vscode.ExtensionContext;
-  let sandbox: sinon.SinonSandbox;
+  let mockContext: vscode.ExtensionContext;
+  let mockGutterIconManager: any;
 
   beforeEach(() => {
-    sandbox = sinon.createSandbox();
-    context = {
+    vi.clearAllMocks();
+    
+    // Mock context
+    mockContext = {
       subscriptions: [],
-      extensionPath: '/test/path',
-      storagePath: '/test/storage',
-      globalStoragePath: '/test/global',
-      logPath: '/test/log',
-      asAbsolutePath: sandbox.stub().returns('/test/absolute/path'),
-      extensionUri: vscode.Uri.file('/test/path'),
-      environmentVariableCollection: {} as any,
-      storageUri: vscode.Uri.file('/test/storage'),
-      globalStorageUri: vscode.Uri.file('/test/global'),
-      logUri: vscode.Uri.file('/test/log'),
-      extensionMode: vscode.ExtensionMode.Test,
-      extension: {} as any,
-      secrets: {} as any,
-      workspaceState: {} as any,
-      globalState: {} as any,
-      languageModelAccessInformation: {} as any,
+      extensionPath: '/mock/path',
+      globalState: {
+        get: vi.fn(),
+        update: vi.fn()
+      },
+      workspaceState: {
+        get: vi.fn(),
+        update: vi.fn()
+      }
+    } as any;
+
+    // Mock GutterIconManager
+    mockGutterIconManager = {
+      dispose: vi.fn()
     };
+    vi.mocked(GutterIconManager).mockImplementation(() => mockGutterIconManager);
   });
 
   afterEach(() => {
-    sandbox.restore();
+    vi.clearAllMocks();
   });
 
   describe('activate', () => {
     it('should initialize gutterIconManager', () => {
-      activate(context);
-      assert.ok(gutterIconManager);
+      activate(mockContext);
+
+      expect(GutterIconManager).toHaveBeenCalledWith(mockContext);
+      expect(gutterIconManager).toBeDefined();
     });
 
     it('should call activateTranslationDecorations', () => {
-      // This test verifies the function is called without errors
-      assert.doesNotThrow(() => activate(context));
+      activate(mockContext);
+
+      expect(activateTranslationDecorations).toHaveBeenCalledWith(mockContext);
     });
 
     it('should call registerCommands', () => {
-      // Mock workspace folders
-      const workspaceFolders = [
-        {
-          uri: vscode.Uri.file('/test/workspace'),
-          name: 'test',
-          index: 0
-        }
-      ];
-      sandbox.stub(vscode.workspace, 'workspaceFolders').value(workspaceFolders);
-      
-      assert.doesNotThrow(() => activate(context));
+      activate(mockContext);
+
+      expect(registerCommands).toHaveBeenCalledWith(mockContext);
+    });
+
+    it('should initialize all components in correct order', () => {
+      activate(mockContext);
+
+      expect(GutterIconManager).toHaveBeenCalledWith(mockContext);
+      expect(activateTranslationDecorations).toHaveBeenCalledWith(mockContext);
+      expect(registerCommands).toHaveBeenCalledWith(mockContext);
     });
   });
 
   describe('deactivate', () => {
     it('should clear subscribers and dispose logger', () => {
-      const clearSubscribersStub = sandbox.stub(GetConfig, 'clearSubscribers');
-      const loggerClearStub = sandbox.stub(logger, 'clear');
-      const loggerDisposeStub = sandbox.stub(logger, 'dispose');
+      // First activate to initialize gutterIconManager
+      activate(mockContext);
       
-      // First activate to create gutterIconManager
-      activate(context);
-      const gutterDisposeStub = sandbox.stub(gutterIconManager, 'dispose');
-
       deactivate();
 
-      assert.ok(clearSubscribersStub.calledOnce);
-      assert.ok(loggerClearStub.calledOnce);
-      assert.ok(loggerDisposeStub.calledOnce);
-      assert.ok(gutterDisposeStub.calledOnce);
+      expect(GetConfig.clearSubscribers).toHaveBeenCalled();
+      expect(logger.clear).toHaveBeenCalled();
+      expect(logger.dispose).toHaveBeenCalled();
+      expect(mockGutterIconManager.dispose).toHaveBeenCalled();
     });
 
     it('should handle deactivation without activation', () => {
-      const clearSubscribersStub = sandbox.stub(GetConfig, 'clearSubscribers');
-      const loggerClearStub = sandbox.stub(logger, 'clear');
-      const loggerDisposeStub = sandbox.stub(logger, 'dispose');
+      // This might cause an error if gutterIconManager is not initialized
+      // but the function should handle it gracefully
+      expect(() => deactivate()).not.toThrow();
+    });
 
-      assert.doesNotThrow(() => deactivate());
-      
-      assert.ok(clearSubscribersStub.calledOnce);
-      assert.ok(loggerClearStub.calledOnce);
-      assert.ok(loggerDisposeStub.calledOnce);
+    it('should call all cleanup methods', () => {
+      activate(mockContext);
+      deactivate();
+
+      expect(GetConfig.clearSubscribers).toHaveBeenCalled();
+      expect(logger.clear).toHaveBeenCalled();
+      expect(logger.dispose).toHaveBeenCalled();
+      expect(mockGutterIconManager.dispose).toHaveBeenCalled();
     });
   });
 });

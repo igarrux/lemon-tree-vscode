@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import { describe, it, expect } from 'vitest';
 import { LemonTreeTranslationConfig } from './lemon-tree-translation-config.type';
 
 describe('LemonTreeTranslationConfig type', () => {
@@ -7,8 +7,8 @@ describe('LemonTreeTranslationConfig type', () => {
       lang: 'es'
     };
 
-    assert.ok(validConfig);
-    assert.strictEqual(validConfig.lang, 'es');
+    expect(validConfig).toBeDefined();
+    expect(validConfig.lang).toBe('es');
   });
 
   it('should allow all optional properties', () => {
@@ -22,13 +22,13 @@ describe('LemonTreeTranslationConfig type', () => {
       }
     };
 
-    assert.ok(fullConfig);
-    assert.strictEqual(fullConfig.lang, 'fr');
-    assert.strictEqual(fullConfig.filePattern, './custom/french.json');
-    assert.strictEqual(fullConfig.protectionPattern, 'protect_key_fr');
-    assert.ok(fullConfig.typeDefinition);
-    assert.strictEqual(fullConfig.typeDefinition.file, './types/french.d.ts');
-    assert.strictEqual(fullConfig.typeDefinition.exportName, 'FrenchKeys');
+    expect(fullConfig).toBeDefined();
+    expect(fullConfig.lang).toBe('fr');
+    expect(fullConfig.filePattern).toBe('./custom/french.json');
+    expect(fullConfig.protectionPattern).toBe('protect_key_fr');
+    expect(fullConfig.typeDefinition).toBeDefined();
+    expect(fullConfig.typeDefinition!.file).toBe('./types/french.d.ts');
+    expect(fullConfig.typeDefinition!.exportName).toBe('FrenchKeys');
   });
 
   it('should work with different language codes', () => {
@@ -39,7 +39,7 @@ describe('LemonTreeTranslationConfig type', () => {
         lang
       };
 
-      assert.strictEqual(config.lang, lang);
+      expect(config.lang).toBe(lang);
     });
   });
 
@@ -51,7 +51,7 @@ describe('LemonTreeTranslationConfig type', () => {
         lang
       };
 
-      assert.strictEqual(config.lang, lang);
+      expect(config.lang).toBe(lang);
     });
   });
 
@@ -70,7 +70,7 @@ describe('LemonTreeTranslationConfig type', () => {
         protectionPattern: pattern
       };
 
-      assert.ok(config.protectionPattern?.includes('key'));
+      expect(config.protectionPattern?.includes('key')).toBe(true);
     });
   });
 
@@ -83,9 +83,9 @@ describe('LemonTreeTranslationConfig type', () => {
       }
     };
 
-    assert.ok(configWithTypeDefinition.typeDefinition);
-    assert.strictEqual(configWithTypeDefinition.typeDefinition.file, './types/en.d.ts');
-    assert.strictEqual(configWithTypeDefinition.typeDefinition.exportName, 'EnglishTranslations');
+    expect(configWithTypeDefinition.typeDefinition).toBeDefined();
+    expect(configWithTypeDefinition.typeDefinition!.file).toBe('./types/en.d.ts');
+    expect(configWithTypeDefinition.typeDefinition!.exportName).toBe('EnglishTranslations');
   });
 
   it('should handle interpolated file patterns', () => {
@@ -101,7 +101,7 @@ describe('LemonTreeTranslationConfig type', () => {
         filePattern: pattern
       };
 
-      assert.strictEqual(config.filePattern, pattern);
+      expect(config.filePattern).toBe(pattern);
     });
   });
 
@@ -111,8 +111,8 @@ describe('LemonTreeTranslationConfig type', () => {
       filePattern: './translations/en.json'
     };
 
-    assert.ok(configWithoutTypes);
-    assert.strictEqual(configWithoutTypes.typeDefinition, undefined);
+    expect(configWithoutTypes).toBeDefined();
+    expect(configWithoutTypes.typeDefinition).toBeUndefined();
   });
 
   it('should work with minimal config', () => {
@@ -120,11 +120,11 @@ describe('LemonTreeTranslationConfig type', () => {
       lang: 'en'
     };
 
-    assert.ok(minimalConfig);
-    assert.strictEqual(minimalConfig.lang, 'en');
-    assert.strictEqual(minimalConfig.filePattern, undefined);
-    assert.strictEqual(minimalConfig.protectionPattern, undefined);
-    assert.strictEqual(minimalConfig.typeDefinition, undefined);
+    expect(minimalConfig).toBeDefined();
+    expect(minimalConfig.lang).toBe('en');
+    expect(minimalConfig.filePattern).toBeUndefined();
+    expect(minimalConfig.protectionPattern).toBeUndefined();
+    expect(minimalConfig.typeDefinition).toBeUndefined();
   });
 
   it('should work with complex file paths', () => {
@@ -140,7 +140,7 @@ describe('LemonTreeTranslationConfig type', () => {
         filePattern: path
       };
 
-      assert.strictEqual(config.filePattern, path);
+      expect(config.filePattern).toBe(path);
     });
   });
 });

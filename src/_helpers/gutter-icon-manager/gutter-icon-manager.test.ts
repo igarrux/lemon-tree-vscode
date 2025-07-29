@@ -1,49 +1,46 @@
 import * as assert from 'assert';
-import * as sinon from 'sinon';
+import { beforeEach, afterEach, describe, it, vi, expect } from 'vitest';
 import * as vscode from 'vscode';
 import { GutterIconManager } from './gutter-icon-manager';
 
 describe('GutterIconManager', () => {
-  let sandbox: sinon.SinonSandbox;
   let context: vscode.ExtensionContext;
   let manager: GutterIconManager;
-  let createTextEditorDecorationTypeStub: sinon.SinonStub;
+  let createTextEditorDecorationTypeStub: any;
   let decorationTypeMock: any;
   let editor: vscode.TextEditor;
-  let asAbsolutePathStub: sinon.SinonStub;
+  let asAbsolutePathStub: any;
 
   beforeEach(() => {
-    sandbox = sinon.createSandbox();
-    
-    asAbsolutePathStub = sandbox.stub().callsFake((path: string) => `/absolute/${path}`);
+    asAbsolutePathStub = vi.fn().mockImplementation((path: string) => `/absolute/${path}`);
     
     context = {
       asAbsolutePath: asAbsolutePathStub
     } as any;
     
     decorationTypeMock = {
-      dispose: sandbox.stub()
+      dispose: vi.fn()
     };
     
-    createTextEditorDecorationTypeStub = sandbox.stub(vscode.window, 'createTextEditorDecorationType')
-      .returns(decorationTypeMock);
+    createTextEditorDecorationTypeStub = vi.mocked(vscode.window.createTextEditorDecorationType)
+      .mockReturnValue(decorationTypeMock);
     
     editor = {
-      setDecorations: sandbox.stub()
+      setDecorations: vi.fn()
     } as any;
     
     manager = new GutterIconManager(context);
   });
 
   afterEach(() => {
-    sandbox.restore();
+    vi.clearAllMocks();
   });
 
   describe('constructor', () => {
     it('should initialize with context and set icon paths', () => {
       assert.ok(manager);
-      assert.ok(asAbsolutePathStub.calledWith('media/lemon.svg'));
-      assert.ok(asAbsolutePathStub.calledWith('media/loading.svg'));
+      expect(asAbsolutePathStub).toHaveBeenCalledWith('media/lemon.svg');
+      expect(asAbsolutePathStub).toHaveBeenCalledWith('media/loading.svg');
     });
   });
 
@@ -51,13 +48,13 @@ describe('GutterIconManager', () => {
     it('should set active line and editor and apply lemon icon', () => {
       manager.lineConfig(5, editor);
       
-      assert.ok(createTextEditorDecorationTypeStub.calledOnce);
-      const decorationOptions = createTextEditorDecorationTypeStub.getCall(0).args[0];
+      expect(createTextEditorDecorationTypeStub).toHaveBeenCalledOnce();
+      const decorationOptions = createTextEditorDecorationTypeStub.mock.calls[0][0];
       assert.strictEqual(decorationOptions.gutterIconSize, 'contain');
       assert.ok(decorationOptions.gutterIconPath);
       
-      assert.ok((editor.setDecorations as sinon.SinonStub).calledOnce);
-      const setDecorationsArgs = (editor.setDecorations as sinon.SinonStub).getCall(0).args;
+      expect((editor.setDecorations as any)).toHaveBeenCalledOnce();
+      const setDecorationsArgs = (editor.setDecorations as any).mock.calls[0];
       assert.strictEqual(setDecorationsArgs[0], decorationTypeMock);
       assert.strictEqual(setDecorationsArgs[1].length, 1);
       
@@ -71,19 +68,19 @@ describe('GutterIconManager', () => {
 
     it('should dispose previous decoration before applying new one', () => {
       manager.lineConfig(1, editor);
-      const firstDecorationType = createTextEditorDecorationTypeStub.getCall(0).returnValue;
+      const firstDecorationType = createTextEditorDecorationTypeStub.mock.results[0].value;
       
       manager.lineConfig(2, editor);
       
-      assert.ok(firstDecorationType.dispose.calledOnce);
-      assert.ok(createTextEditorDecorationTypeStub.calledTwice);
+      expect(firstDecorationType.dispose).toHaveBeenCalledOnce();
+      expect(createTextEditorDecorationTypeStub).toHaveBeenCalledTimes(2);
     });
 
     it('should handle line 0', () => {
       manager.lineConfig(0, editor);
       
-      assert.ok((editor.setDecorations as sinon.SinonStub).calledOnce);
-      const setDecorationsArgs = (editor.setDecorations as sinon.SinonStub).getCall(0).args;
+      expect((editor.setDecorations as any)).toHaveBeenCalledOnce();
+      const setDecorationsArgs = (editor.setDecorations as any).mock.calls[0];
       const range = setDecorationsArgs[1][0];
       assert.strictEqual(range.start.line, 0);
     });
@@ -92,13 +89,13 @@ describe('GutterIconManager', () => {
   describe('updating', () => {
     it('should apply loading icon when called', () => {
       manager.lineConfig(3, editor);
-      createTextEditorDecorationTypeStub.resetHistory();
-      (editor.setDecorations as sinon.SinonStub).resetHistory();
+      createTextEditorDecorationTypeStub.mockClear();
+      vi.mocked(editor.setDecorations).mockClear();
       
       manager.updating();
       
-      assert.ok(createTextEditorDecorationTypeStub.calledOnce);
-      const decorationOptions = createTextEditorDecorationTypeStub.getCall(0).args[0];
+      expect(createTextEditorDecorationTypeStub).toHaveBeenCalledOnce();
+      const decorationOptions = createTextEditorDecorationTypeStub.mock.calls[0][0];
       assert.ok(decorationOptions.gutterIconPath.fsPath.includes('loading.svg'));
     });
 
@@ -106,16 +103,16 @@ describe('GutterIconManager', () => {
       manager.updating();
       
       // Should not throw and should not set decorations since no active line
-      assert.ok((editor.setDecorations as sinon.SinonStub).notCalled);
+      expect(editor.setDecorations).not.toHaveBeenCalled();
     });
 
     it('should dispose previous decoration', () => {
       manager.lineConfig(1, editor);
-      const firstDecorationType = createTextEditorDecorationTypeStub.getCall(0).returnValue;
+      const firstDecorationType = createTextEditorDecorationTypeStub.mock.results[0].value;
       
       manager.updating();
       
-      assert.ok(firstDecorationType.dispose.calledOnce);
+      expect(firstDecorationType.dispose).toHaveBeenCalledOnce();
     });
   });
 
@@ -123,13 +120,13 @@ describe('GutterIconManager', () => {
     it('should apply lemon icon when called', () => {
       manager.lineConfig(3, editor);
       manager.updating(); // switch to loading
-      createTextEditorDecorationTypeStub.resetHistory();
-      (editor.setDecorations as sinon.SinonStub).resetHistory();
+      createTextEditorDecorationTypeStub.mockClear();
+      vi.mocked(editor.setDecorations).mockClear();
       
       manager.done();
       
-      assert.ok(createTextEditorDecorationTypeStub.calledOnce);
-      const decorationOptions = createTextEditorDecorationTypeStub.getCall(0).args[0];
+      expect(createTextEditorDecorationTypeStub).toHaveBeenCalledOnce();
+      const decorationOptions = createTextEditorDecorationTypeStub.mock.calls[0][0];
       assert.ok(decorationOptions.gutterIconPath.fsPath.includes('lemon.svg'));
     });
 
@@ -137,18 +134,18 @@ describe('GutterIconManager', () => {
       manager.done();
       
       // Should not throw and should not set decorations since no active line
-      assert.ok((editor.setDecorations as sinon.SinonStub).notCalled);
+      expect(editor.setDecorations).not.toHaveBeenCalled();
     });
   });
 
   describe('dispose', () => {
     it('should dispose decoration type and reset state', () => {
       manager.lineConfig(1, editor);
-      const decorationType = createTextEditorDecorationTypeStub.getCall(0).returnValue;
+      const decorationType = createTextEditorDecorationTypeStub.mock.results[0].value;
       
       manager.dispose();
       
-      assert.ok(decorationType.dispose.calledOnce);
+      expect(decorationType.dispose).toHaveBeenCalledOnce();
     });
 
     it('should handle multiple dispose calls', () => {
@@ -180,7 +177,7 @@ describe('GutterIconManager', () => {
       manager.lineConfig(-1, editor);
       
       // Should not set decorations for invalid line
-      assert.ok((editor.setDecorations as sinon.SinonStub).notCalled);
+      expect(editor.setDecorations).not.toHaveBeenCalled();
     });
 
     it('should handle applyDecoration with no active line', () => {
@@ -189,7 +186,7 @@ describe('GutterIconManager', () => {
       
       // Should not throw and should not set decorations
       assert.doesNotThrow(() => manager.updating());
-      assert.ok((editor.setDecorations as sinon.SinonStub).notCalled);
+      expect(editor.setDecorations).not.toHaveBeenCalled();
     });
 
     it('should handle applyDecoration with no editor', () => {
@@ -201,19 +198,19 @@ describe('GutterIconManager', () => {
       
       // Should not throw and should not set decorations
       assert.doesNotThrow(() => manager.updating());
-      assert.ok((editor.setDecorations as sinon.SinonStub).notCalled);
+      expect(editor.setDecorations).not.toHaveBeenCalled();
     });
 
     it('should create correct Uri for icon paths', () => {
       manager.lineConfig(1, editor);
       
-      const decorationOptions = createTextEditorDecorationTypeStub.getCall(0).args[0];
-      assert.ok(decorationOptions.gutterIconPath instanceof vscode.Uri);
+      const decorationOptions = createTextEditorDecorationTypeStub.mock.calls[0][0];
+      assert.ok(decorationOptions.gutterIconPath.fsPath);
       assert.ok(decorationOptions.gutterIconPath.fsPath.includes('lemon.svg'));
     });
 
     it('should use absolute path from context', () => {
-      const customAsAbsolutePathStub = sandbox.stub().returns('/custom/absolute/path/media/lemon.svg');
+      const customAsAbsolutePathStub = vi.fn().mockReturnValue('/custom/absolute/path/media/lemon.svg');
       const customContext = {
         asAbsolutePath: customAsAbsolutePathStub
       } as any;
@@ -221,8 +218,8 @@ describe('GutterIconManager', () => {
       const customManager = new GutterIconManager(customContext);
       customManager.lineConfig(1, editor);
       
-      assert.ok(customAsAbsolutePathStub.calledWith('media/lemon.svg'));
-      assert.ok(customAsAbsolutePathStub.calledWith('media/loading.svg'));
+      expect(customAsAbsolutePathStub).toHaveBeenCalledWith('media/lemon.svg');
+      expect(customAsAbsolutePathStub).toHaveBeenCalledWith('media/loading.svg');
     });
   });
 });

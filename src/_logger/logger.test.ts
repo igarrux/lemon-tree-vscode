@@ -1,32 +1,29 @@
 import * as assert from 'assert';
-import * as sinon from 'sinon';
+import { beforeEach, afterEach, describe, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { buildLogger } from './logger';
 
 describe('Logger', () => {
-  let sandbox: sinon.SinonSandbox;
-  let createOutputChannelStub: sinon.SinonStub;
+  let createOutputChannelStub: any;
   let outputChannelMock: any;
 
   beforeEach(() => {
-    sandbox = sinon.createSandbox();
-    
     outputChannelMock = {
-      append: sandbox.stub(),
-      appendLine: sandbox.stub(),
-      clear: sandbox.stub(),
-      dispose: sandbox.stub(),
-      hide: sandbox.stub(),
-      show: sandbox.stub(),
+      append: vi.fn(),
+      appendLine: vi.fn(),
+      clear: vi.fn(),
+      dispose: vi.fn(),
+      hide: vi.fn(),
+      show: vi.fn(),
       name: 'Lemon Tree'
     };
     
-    createOutputChannelStub = sandbox.stub(vscode.window, 'createOutputChannel')
-      .returns(outputChannelMock);
+    createOutputChannelStub = vi.mocked(vscode.window.createOutputChannel)
+      .mockReturnValue(outputChannelMock);
   });
 
   afterEach(() => {
-    sandbox.restore();
+    vi.clearAllMocks();
   });
 
   describe('buildLogger', () => {
@@ -43,17 +40,25 @@ describe('Logger', () => {
       const channel2 = loggerFn();
       
       assert.strictEqual(channel1, channel2);
-      assert.ok(createOutputChannelStub.calledOnce);
+      assert.strictEqual(createOutputChannelStub.mock.calls.length, 1);
     });
 
     it('should not cache output channel when skipCache is true', () => {
+      // Need to create fresh mocks for each call since skipCache=true
+      const mock1 = { ...outputChannelMock, id: 'channel1' };
+      const mock2 = { ...outputChannelMock, id: 'channel2' };
+      
+      createOutputChannelStub
+        .mockReturnValueOnce(mock1)
+        .mockReturnValueOnce(mock2);
+      
       const loggerFn = buildLogger(true);
       
       const channel1 = loggerFn();
       const channel2 = loggerFn();
       
       assert.notStrictEqual(channel1, channel2);
-      assert.ok(createOutputChannelStub.calledTwice);
+      assert.strictEqual(createOutputChannelStub.mock.calls.length, 2);
     });
 
     it('should create output channel with "Lemon Tree" name', () => {
@@ -61,7 +66,7 @@ describe('Logger', () => {
       
       loggerFn();
       
-      assert.ok(createOutputChannelStub.calledWith('Lemon Tree'));
+      assert.strictEqual(createOutputChannelStub.mock.calls[0][0], 'Lemon Tree');
     });
 
     it('should return output channel with expected methods', () => {
@@ -84,7 +89,7 @@ describe('Logger', () => {
       
       assert.strictEqual(channel1, channel2);
       assert.strictEqual(channel2, channel3);
-      assert.ok(createOutputChannelStub.calledOnce);
+      assert.strictEqual(createOutputChannelStub.mock.calls.length, 1);
     });
 
     it('should recreate channel after skipCache change', () => {
@@ -94,7 +99,7 @@ describe('Logger', () => {
       loggerFn1();
       loggerFn2();
       
-      assert.ok(createOutputChannelStub.calledTwice);
+      assert.strictEqual(createOutputChannelStub.mock.calls.length, 2);
     });
   });
 });
