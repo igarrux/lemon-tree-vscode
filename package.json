@@ -2,7 +2,7 @@
   "name": "lemon-tree",
   "displayName": "lemon-tree",
   "description": "A ui in vscode for lemon-tree",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "icon": "./media/logo.png",
   "publisher": "garrux",
   "engines": {
