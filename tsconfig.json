@@ -3,10 +3,16 @@
 		"module": "Node16",
 		"target": "ES2022",
 		"lib": [
-			"ES2022"
+			"ES2022",
+			"DOM"
 		],
 		"sourceMap": true,
 		"rootDir": "src",
 		"strict": true,
-	}
+		"skipLibCheck": true,
+		"moduleResolution": "Node16",
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true
+	},
+	"exclude": ["vitest.*", "out/**/*", "node_modules/**/*"]
 }
