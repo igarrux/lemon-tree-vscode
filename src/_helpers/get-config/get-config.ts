@@ -86,7 +86,6 @@ export class GetConfig {
 		omitCache: boolean = false
 	): Promise<LemonTreeConfig | {}> {
 		if (this.cachedConfig && !omitCache) return this.cachedConfig;
-		Toast.info("Loading lemon-tree configuration...");
 		await this.loadConfig();
 		return this.cachedConfig || {};
 	}
