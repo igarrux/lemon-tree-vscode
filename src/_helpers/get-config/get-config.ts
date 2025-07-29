@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as yaml from "yaml";
 import { Toast } from "../../_util/toast/toast";
 import { LemonTreeConfig } from "../../types/lemon-tree-config.type";
+import { logger } from "../../_logger/logger";
 
 /**
  * Get the lemon-tree configuration from the lemon-tree.yaml file
@@ -85,7 +86,7 @@ export class GetConfig {
 		omitCache: boolean = false
 	): Promise<LemonTreeConfig | {}> {
 		if (this.cachedConfig && !omitCache) return this.cachedConfig;
-
+		Toast.info("Loading lemon-tree configuration...");
 		await this.loadConfig();
 		return this.cachedConfig || {};
 	}
@@ -110,10 +111,12 @@ export class GetConfig {
 			const file = fs.readFileSync(this.path, "utf8");
 			const config = yaml.parse(file);
 			if (!config) {
-				return Toast.error("Failed to parse lemon-tree.yaml file");
+				return logger.appendLine(
+					"Failed to parse lemon-tree.yaml file"
+				);
 			}
 			if (typeof config !== "object") {
-				return Toast.error(
+				return logger.appendLine(
 					"lemon-tree.yaml file is not a valid YAML object"
 				);
 			}
@@ -121,31 +124,31 @@ export class GetConfig {
 			this.cachedConfig = config as LemonTreeConfig;
 		} catch (error) {
 			if (!(error instanceof Error)) {
-				return Toast.error(
+				return logger.appendLine(
 					`[Lemon Tree] Failed to read lemon-tree.yaml file. Unexpected error ${error}`
 				);
 			}
 			const message = error?.message as string;
 			if (message.includes("ENOENT")) {
-				return Toast.error("Failed to read lemon-tree.yaml file");
+				return logger.appendLine("Failed to read lemon-tree.yaml file");
 			}
 			if (message.includes("EISDIR")) {
-				return Toast.error(
+				return logger.appendLine(
 					"lemon-tree.yaml is a directory, must be a file"
 				);
 			}
 			if (message.includes("EACCES")) {
-				return Toast.error(
+				return logger.appendLine(
 					"No permissions to read lemon-tree.yaml file"
 				);
 			}
 			if (message.includes("EPERM")) {
-				return Toast.error(
+				return logger.appendLine(
 					"No permissions to read lemon-tree.yaml file"
 				);
 			}
 			if (message.includes("EPIPE")) {
-				return Toast.error(
+				return logger.appendLine(
 					"lemon-tree.yaml file is not a valid YAML file"
 				);
 			}
