@@ -12,12 +12,14 @@ import { LemonTreeConfig } from "../../types/lemon-tree-config.type";
  * @returns A function that returns the translation details for the next match.
  */
 export const buildGetTranslationDetails = async () => {
-	const config = (await GetConfig.config(true)) as LemonTreeConfig;
+	const config = (await GetConfig.config()) as LemonTreeConfig;
 	const translationExamples = config?.translationFunctionExamples;
 	if (!translationExamples) return () => null;
 
 	const patterns: string[] = Array.isArray(translationExamples)
-		? translationExamples
+		? translationExamples.filter(
+				(pattern): pattern is string => typeof pattern === "string"
+		  )
 		: [translationExamples];
 
 	/**
@@ -56,9 +58,9 @@ export const buildGetTranslationDetails = async () => {
 		const quote = match[2];
 		const fn = match[1];
 		const key = match[3];
-		const fnStart = match.index + match[0].indexOf(fn) ;
+		const fnStart = match.index + match[0].indexOf(fn);
 		const fnEnd = fnStart + fn.length;
-		const start = match.index + match[0].indexOf(quote + key + quote);
+		const start = match.index + match[0].indexOf(quote + key + quote) + 1;
 		const end = start + key?.length;
 		return { start, end, quote, key, fnStart, fnEnd };
 	};
