@@ -15,14 +15,6 @@ export const getLineActions = (
 	try {
 		const diagnostics = vscode.languages.getDiagnostics(document.uri);
 		const hasError = diagnostics.some((d) => {
-			console.log({
-				fnRange: { start: fnRange.start, end: fnRange.end },
-				range: { start: range.start, end: range.end },
-			});
-			console.log({
-				severity: d.severity,
-				errorSeverity: vscode.DiagnosticSeverity.Error,
-			});
 			return (
 				(d.range.contains(range.start) || d.range.contains(fnRange)) &&
 				d.severity === vscode.DiagnosticSeverity.Error
